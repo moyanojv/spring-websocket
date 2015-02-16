@@ -1,31 +1,91 @@
 <!DOCTYPE HTML>
 <html lang="en">
   <head>
-    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700" rel="stylesheet" type="text/css" />
-    <link href="assets/style.css" rel="stylesheet" type="text/css" />
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  	<link rel="stylesheet" href="assets/basic.css">
   </head>
-  <body ng-app="chatApp">
-    <div ng-controller="ChatCtrl" class="container">
-      <form ng-submit="addMessage()" name="messageForm">
-        <input type="text" placeholder="Compose a new message..." ng-model="message" />
-        <div class="info">
-          <span class="count" ng-bind="max - message.length" ng-class="{danger: message.length > max}">140</span>
-          <button ng-disabled="message.length > max || message.length === 0">Send</button>
-        </div>
-      </form>
-      <hr />
-      <p ng-repeat="message in messages | orderBy:'time':true" class="message">
-        <time>{{message.time | date:'HH:mm'}}</time>
-        <span>{{message.message}}</span>
-      </p>
-    </div>
-    
+
+	
+	
+	
+	<div class="jumbotron">
+		<div class="container">
+		<h1>Test this new feature!</h1>
+		<form class="form-horizontal">
+			<div class="form-group">
+				<label for="input" class="col-sm-2 control-label">Message</label>
+				<div class="col-sm-10">
+					<input type="text" class="form-control" id="input" placeholder="Type a message">
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button type="button" class="btn btn-primary" id="send_button">Send</button>
+				</div>
+			</div>
+		</form>
+		</div>
+
+	</div>
+	<div class="row">
+		<div class="col-md-6 col-md-offset-3">
+			<ul id="messages">
+
+			</ul>
+		</div>
+
+	</div>
+
+	
+	
+	
+<!-- Latest compiled and minified JavaScript -->
+	<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="libs/sockjs/sockjs.min.js" type="text/javascript"></script>
     <script src="libs/stomp-websocket/lib/stomp.min.js" type="text/javascript"></script>
-    <script src="libs/angular/angular.min.js"></script>
-    <script src="libs/lodash/dist/lodash.min.js"></script>
-    <script src="app/app.js" type="text/javascript"></script>
-    <script src="app/controllers.js" type="text/javascript"></script>
-    <script src="app/services.js" type="text/javascript"></script>
+    <script src="libs/moment/moment.js" type="text/javascript"></script>
+
+
+	
+
+	<script type="text/javascript">
+		var socket = new SockJS('/spring-websocket/mysocket');
+		var client = Stomp.over(socket);
+		 
+		var onConnect = function() {
+		  client.subscribe("/topic/message", function(data) {
+			  var message = JSON.parse(data.body)
+			  var out = {};
+		      out.message = message.message;
+		      out.time = new Date(message.time);
+			  var li = $('<li/>').addClass('list-group-item').text(moment(out.time).format('MM/DD/YYYY, HH:mm:ss [   ]') + out.message);
+			  $("#messages").prepend(li);
+		      console.log(message);
+		  });
+		};
+		
+		client.connect({}, onConnect);
+		
+		var send = function(id, message) {
+			client.send("/app/message", 
+					{
+						priority: 9
+		      		}, JSON.stringify({
+		      			id: id,
+		      			message: message
+		      		}
+		      	)
+			);
+		};
+		
+		$("#send_button").click(function() {
+			var text = $("#input").val();
+			send(Math.floor(Math.random() * 1000000), text);
+		});
+
+	
+	</script>
   </body>
 </html>

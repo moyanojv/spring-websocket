@@ -26,12 +26,6 @@ public class ChatController {
 	public String viewApplication() {
 		return "index";
 	}
-
-	@RequestMapping(value="/index2", method = RequestMethod.GET)
-	public String viewApplication2() {
-		return "index2";
-	}
-
 	
 	@MessageMapping("/message") // work with application prefix where Spring MVC will listen
 	@SendTo("/topic/message")
